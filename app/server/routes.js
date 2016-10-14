@@ -3,17 +3,35 @@ var CT = require('./modules/country-list');
 var AM = require('./modules/account-manager');
 var EM = require('./modules/email-dispatcher');
 
+
+
+
 module.exports = function(app) {
 
 // main login page //
 	app.get('/', function(req, res){
 	// check if the user's credentials are saved in a cookie //
+		console.log(" / get request")
+		console.log("req.cookies")
+		console.log(req.cookies)
+		//hasOwnProperty
+		if(req.hasOwnProperty("session.user")){
+			res.redirect('/home');
+		}
+		/*if(req.session.user!=undefined){
+
+		}*/
 		if (req.cookies.user == undefined || req.cookies.pass == undefined){
 			res.render('login', { title: 'Hello - Please Login To Your Account' });
 		}	else{
+			console.log("cookies are set")
 	// attempt automatic login //
 			AM.autoLogin(req.cookies.user, req.cookies.pass, function(o){
+				console.log("the value of o")
+				console.log(o)
 				if (o != null){
+					console.log("the req.session variable is")
+					console.log(req.session)
 				    req.session.user = o;
 					res.redirect('/home');
 				}	else{
@@ -24,10 +42,17 @@ module.exports = function(app) {
 	});
 	
 	app.post('/', function(req, res){
+		console.log('/ Post request Manual Login')
+		console.log("the request object contains")
+		console.log(req.body)
 		AM.manualLogin(req.body['user'], req.body['pass'], function(e, o){
+           console.log("the value of o is")
+			console.log(o)
 			if (!o){
 				res.status(400).send(e);
 			}	else{
+				console.log('the session ')
+				console.log(req.session)
 				req.session.user = o;
 				if (req.body['remember-me'] == 'true'){
 					res.cookie('user', o.user, { maxAge: 900000 });
@@ -41,6 +66,11 @@ module.exports = function(app) {
 // logged-in user homepage //
 	
 	app.get('/home', function(req, res) {
+		console.log(' /home get request for logged in user')
+		console.log("the value of the session variable is")
+		console.log(req.session)
+		console.log("the value of the cookies are")
+		console.log(req.cookies)
 		if (req.session.user == null){
 	// if user is not logged-in redirect back to login page //
 			res.redirect('/');
@@ -54,6 +84,7 @@ module.exports = function(app) {
 	});
 	
 	app.post('/home', function(req, res){
+		console.log(' /home post request ')
 		if (req.session.user == null){
 			res.redirect('/');
 		}	else{
@@ -71,8 +102,11 @@ module.exports = function(app) {
 			// update the user's login cookies if they exists //
 					if (req.cookies.user != undefined && req.cookies.pass != undefined){
 						res.cookie('user', o.user, { maxAge: 900000 });
-						res.cookie('pass', o.pass, { maxAge: 900000 });	
+						res.cookie('pass', o.pass, { maxAge: 900000 });
+						console.log("the value of the cookies after updating user details since the cookies  were not undefined before")
+						console.log(req.cookies)
 					}
+
 					res.status(200).send('ok');
 				}
 			});
@@ -80,6 +114,7 @@ module.exports = function(app) {
 	});
 
 	app.post('/logout', function(req, res){
+		console.log('/logout post request')
 		res.clearCookie('user');
 		res.clearCookie('pass');
 		req.session.destroy(function(e){ res.status(200).send('ok'); });
@@ -88,10 +123,12 @@ module.exports = function(app) {
 // creating new accounts //
 	
 	app.get('/signup', function(req, res) {
+		console.log('/signup get request')
 		res.render('signup', {  title: 'Signup', countries : CT });
 	});
 	
 	app.post('/signup', function(req, res){
+		console.log('/signup post request')
 		AM.addNewAccount({
 			name 	: req.body['name'],
 			email 	: req.body['email'],
@@ -110,6 +147,7 @@ module.exports = function(app) {
 // password reset //
 
 	app.post('/lost-password', function(req, res){
+		console.log('/lost-password post request')
 	// look up the user's account via their email //
 		AM.getAccountByEmail(req.body['email'], function(o){
 			if (o){
@@ -130,6 +168,7 @@ module.exports = function(app) {
 	});
 
 	app.get('/reset-password', function(req, res) {
+		console.log('/reset-password  get request')
 		var email = req.query["e"];
 		var passH = req.query["p"];
 		AM.validateResetLink(email, passH, function(e){
@@ -144,6 +183,7 @@ module.exports = function(app) {
 	});
 	
 	app.post('/reset-password', function(req, res) {
+		console.log('/reset-password  post request')
 		var nPass = req.body['pass'];
 	// retrieve the user's email from the session to lookup their account and reset password //
 		var email = req.session.reset.email;
@@ -161,12 +201,14 @@ module.exports = function(app) {
 // view & delete accounts //
 	
 	app.get('/print', function(req, res) {
+		console.log('/print get request')
 		AM.getAllRecords( function(e, accounts){
 			res.render('print', { title : 'Account List', accts : accounts });
 		})
 	});
 	
 	app.post('/delete', function(req, res){
+		console.log('/delete post request')
 		AM.deleteAccount(req.body.id, function(e, obj){
 			if (!e){
 				res.clearCookie('user');
@@ -179,6 +221,7 @@ module.exports = function(app) {
 	});
 	
 	app.get('/reset', function(req, res) {
+		console.log('/reset get request')
 		AM.delAllRecords(function(){
 			res.redirect('/print');	
 		});

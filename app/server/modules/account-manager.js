@@ -1,18 +1,29 @@
 
 var crypto 		= require('crypto');
-var MongoDB 	= require('mongodb').Db;
-var Server 		= require('mongodb').Server;
+//var MongoDB 	= require('mongodb').Db;
+//var Server 		= require('mongodb').Server;
 var moment 		= require('moment');
+var accountModel = require('../../../models/accounts');
+
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+/*var express = require('express');
+ var app= express()
+
+app.use(passport.initialize());
+app.use(passport.session());*/
+
+//var accounts = accountModel.accounts
 
 /*
 	ESTABLISH DATABASE CONNECTION
 */
 
-var dbName = process.env.DB_NAME || 'node-login';
+/*var dbName = process.env.DB_NAME || 'node-login';
 var dbHost = process.env.DB_HOST || 'localhost'
-var dbPort = process.env.DB_PORT || 27017;
+var dbPort = process.env.DB_PORT || 27017;*/
 
-var db = new MongoDB(dbName, new Server(dbHost, dbPort, {auto_reconnect: true}), {w: 1});
+/*var db = new MongoDB(dbName, new Server(dbHost, dbPort, {auto_reconnect: true}), {w: 1});
 db.open(function(e, d){
 	if (e) {
 		console.log(e);
@@ -30,15 +41,17 @@ db.open(function(e, d){
 			console.log('mongo :: connected to database :: "'+dbName+'"');
 		}
 	}
-});
+});*/
 
-var accounts = db.collection('accounts');
+//var accounts = db.collection('accounts');
+//var accounts= accountModel.accounts
 
 /* login validation methods */
 
 exports.autoLogin = function(user, pass, callback)
 {
-	accounts.findOne({user:user}, function(e, o) {
+	accountModel.accounts.findOne({user:user}, function(e, o) {
+	//accounts.findOne({user:user}, function(e, o) {
 		if (o){
 			o.pass == pass ? callback(o) : callback(null);
 		}	else{
@@ -47,28 +60,67 @@ exports.autoLogin = function(user, pass, callback)
 	});
 }
 
-exports.manualLogin = function(user, pass, callback)
-{
-	accounts.findOne({user:user}, function(e, o) {
-		if (o == null){
+exports.manualLogin = function(user, pass, callback) {
+	/*accountModel.accounts.findOne({user: user}, function (e, o) {
+		if (o == null) {
+
+
 			callback('user-not-found');
-		}	else{
-			validatePassword(pass, o.pass, function(err, res) {
-				if (res){
+		} else {
+			validatePassword(pass, o.pass, function (err, res) {
+				if (res) {
 					callback(null, o);
-				}	else{
+				} else {
 					callback('invalid-password');
 				}
 			});
 		}
-	});
+	});*/
+
+	console.log("outside passport")
+	console.log("the params are")
+	console.log(user)
+	console.log(pass)
+		passport.use(new LocalStrategy({usernameField: 'user',
+			passwordField: 'pass',},function(user, pass, cb) {
+			console.log("inside passport")
+				console.log("account manager.js")
+				console.log(user)
+				console.log(pass)
+				accountModel.accounts.findOne({user:user},function(err,user){
+
+
+				//accountModel.accounts.findOne(username, function(err, user) {
+					console.log("the value of user variable is")
+					console.log(user)
+					if (err) { return cb(err); }
+					if (!user)  callback('user-not-found'); //{ return cb(null, false); }
+					if (user.password != password) callback('invalid-password');//{ return cb(null, false); }
+					return cb(null, user);
+				});
+			}));
+
+
+
 }
+
+passport.serializeUser(function(user, cb) {
+	cb(null, user.id);
+});
+
+passport.deserializeUser(function(id, cb) {
+	db.users.findById(id, function (err, user) {
+		if (err) { return cb(err); }
+		cb(null, user);
+	});
+});
+
 
 /* record insertion, update & deletion methods */
 
 exports.addNewAccount = function(newData, callback)
 {
-	accounts.findOne({user:newData.user}, function(e, o) {
+	accountModel.accounts.findOne({user:newData.user}, function(e, o) {
 		if (o){
 			callback('username-taken');
 		}	else{
@@ -90,7 +142,7 @@ exports.addNewAccount = function(newData, callback)
 
 exports.updateAccount = function(newData, callback)
 {
-	accounts.findOne({_id:getObjectId(newData.id)}, function(e, o){
+	accountModel.accounts.findOne({_id:getObjectId(newData.id)}, function(e, o){
 		o.name 		= newData.name;
 		o.email 	= newData.email;
 		o.country 	= newData.country;
@@ -113,7 +165,7 @@ exports.updateAccount = function(newData, callback)
 
 exports.updatePassword = function(email, newPass, callback)
 {
-	accounts.findOne({email:email}, function(e, o){
+	accountModel.accounts.findOne({email:email}, function(e, o){
 		if (e){
 			callback(e, null);
 		}	else{
@@ -129,24 +181,24 @@ exports.updatePassword = function(email, newPass, callback)
 
 exports.deleteAccount = function(id, callback)
 {
-	accounts.remove({_id: getObjectId(id)}, callback);
+	accountModel.accounts.remove({_id: getObjectId(id)}, callback);
 }
 
 exports.getAccountByEmail = function(email, callback)
 {
-	accounts.findOne({email:email}, function(e, o){ callback(o); });
+	accountModel.accounts.findOne({email:email}, function(e, o){ callback(o); });
 }
 
 exports.validateResetLink = function(email, passHash, callback)
 {
-	accounts.find({ $and: [{email:email, pass:passHash}] }, function(e, o){
+	accountModel.accounts.find({ $and: [{email:email, pass:passHash}] }, function(e, o){
 		callback(o ? 'ok' : null);
 	});
 }
 
 exports.getAllRecords = function(callback)
 {
-	accounts.find().toArray(
+	accountModel.accounts.find().toArray(
 		function(e, res) {
 		if (e) callback(e)
 		else callback(null, res)
@@ -155,7 +207,7 @@ exports.getAllRecords = function(callback)
 
 exports.delAllRecords = function(callback)
 {
-	accounts.remove({}, callback); // reset accounts collection for testing //
+	accountModel.accounts.remove({}, callback); // reset accounts collection for testing //
 }
 
 /* private encryption & validation methods */
@@ -195,7 +247,7 @@ var getObjectId = function(id)
 
 var findById = function(id, callback)
 {
-	accounts.findOne({_id: getObjectId(id)},
+	accountModel.accounts.findOne({_id: getObjectId(id)},
 		function(e, res) {
 		if (e) callback(e)
 		else callback(null, res)
@@ -205,7 +257,7 @@ var findById = function(id, callback)
 var findByMultipleFields = function(a, callback)
 {
 // this takes an array of name/val pairs to search against {fieldName : 'value'} //
-	accounts.find( { $or : a } ).toArray(
+	accountModel.accounts.find( { $or : a } ).toArray(
 		function(e, results) {
 		if (e) callback(e)
 		else callback(null, results)

@@ -21,6 +21,10 @@
     "jade": "1.11.0",
     "moment": "2.10.3",
     "mongodb": "2.0.45",
+    "mongoose": "^4.6.3",
+    "nconf": "^0.8.4",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
     "stylus": "0.52.4"
   },
   "engines": {

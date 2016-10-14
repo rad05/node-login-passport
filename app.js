@@ -12,6 +12,10 @@ var bodyParser = require('body-parser');
 var errorHandler = require('errorhandler');
 var cookieParser = require('cookie-parser');
 var MongoStore = require('connect-mongo')(session);
+//to authenticate using passport
+
+var db = require('./models/db');
+
 
 var app = express();
 
@@ -25,6 +29,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(require('stylus').middleware({ src: __dirname + '/app/public' }));
 app.use(express.static(__dirname + '/app/public'));
 
+ // for using passport
+
+
+
+
+//app.use(express.static(path.join(__dirname, 'public')))
+
+// using passport
+
+
+
+
 // build mongo database connection url //
 
 var dbHost = process.env.DB_HOST || 'localhost'
@@ -33,7 +49,7 @@ var dbName = process.env.DB_NAME || 'node-login';
 
 var dbURL = 'mongodb://'+dbHost+':'+dbPort+'/'+dbName;
 if (app.get('env') == 'live'){
-// prepend url with authentication credentials // 
+// prepend url with authentication credentials // */
 	dbURL = 'mongodb://'+process.env.DB_USER+':'+process.env.DB_PASS+'@'+dbHost+':'+dbPort+'/'+dbName;
 }
 
@@ -42,7 +58,7 @@ app.use(session({
 	proxy: true,
 	resave: true,
 	saveUninitialized: true,
-	store: new MongoStore({ url: dbURL })
+	//store: new MongoStore({ url: dbURL })
 	})
 );
 

@@ -1,0 +1,10 @@
+{
+  "express" : {
+    "port": 3000
+  },
+  "database": {
+    "mongo": {
+      "name": "node-login"
+    }
+  }
+}

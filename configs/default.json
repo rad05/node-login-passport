@@ -1,0 +1,17 @@
+{
+  "application": {
+    "name": "flipKartAfliateApi",
+    "FkAffId": "rad7804gm",
+    "FkAffToken": "51f0bc91d22c476a947aafd2a6c88198",
+    "secret": "thisShouldBeKeptSecret",
+    "jwtExp":1,
+    "path": {
+      "uploadDir": "/uploads/",
+      "tempDir": "temp/",
+      "serverPath":"http://52.76.83.76:9051/"
+    },
+    "gcm":{
+      "apiKey":"AIzaSyBMzlwzOIb3qzunUE4LbzQUlSRXNSS-dkY"
+    }
+  }
+}

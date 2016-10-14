@@ -1,0 +1,10 @@
+{
+  "express" : {
+    "port": 9051
+  },
+  "database": {
+    "mongo": {
+      "name": "CashPlus"
+    }
+  }
+}
