@@ -7,11 +7,12 @@ var accountModel = require('../../../models/accounts');
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
-/*var express = require('express');
+
+var express = require('express');
  var app= express()
 
 app.use(passport.initialize());
-app.use(passport.session());*/
+app.use(passport.session());
 
 //var accounts = accountModel.accounts
 
@@ -60,7 +61,7 @@ exports.autoLogin = function(user, pass, callback)
 	});
 }
 
-exports.manualLogin = function(user, pass, callback) {
+exports.manualLogin = function(user, pass, app,callback) {
 	/*accountModel.accounts.findOne({user: user}, function (e, o) {
 		if (o == null) {
 
@@ -81,8 +82,8 @@ exports.manualLogin = function(user, pass, callback) {
 	console.log("the params are")
 	console.log(user)
 	console.log(pass)
-		passport.use(new LocalStrategy({usernameField: 'user',
-			passwordField: 'pass',},function(user, pass, cb) {
+		passport.use('/login',new LocalStrategy({usernameField: 'user',
+			passwordField: 'pass'},function(user, pass, cb) {
 			console.log("inside passport")
 				console.log("account manager.js")
 				console.log(user)
@@ -102,14 +103,28 @@ exports.manualLogin = function(user, pass, callback) {
 
 
 
+	/*passport.use(new LocalStrategy(function(username,password,done){
+		console.log("inside passport")
+		accountModel.accounts.findOne({user:username},function(err,user){
+			if (err) { return done(err); }
+			if (!user) { return done(null, false); }
+			return done(null,user)
+
+		})
+	}))*/
+
+
+
 }
 
 passport.serializeUser(function(user, cb) {
+	console.log("serialized")
 	cb(null, user.id);
 });
 
 passport.deserializeUser(function(id, cb) {
-	db.users.findById(id, function (err, user) {
+	console.log("Deserialized")
+	db.accounts.findById(id, function (err, user) {
 		if (err) { return cb(err); }
 		cb(null, user);
 	});
@@ -124,7 +139,7 @@ exports.addNewAccount = function(newData, callback)
 		if (o){
 			callback('username-taken');
 		}	else{
-			accounts.findOne({email:newData.email}, function(e, o) {
+			accountModel.accounts.findOne({email:newData.email}, function(e, o) {
 				if (o){
 					callback('email-taken');
 				}	else{
@@ -139,6 +154,9 @@ exports.addNewAccount = function(newData, callback)
 		}
 	});
 }
+
+
+
 
 exports.updateAccount = function(newData, callback)
 {

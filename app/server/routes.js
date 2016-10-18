@@ -2,8 +2,21 @@
 var CT = require('./modules/country-list');
 var AM = require('./modules/account-manager');
 var EM = require('./modules/email-dispatcher');
+//var passport = require('passport')
+
+// for passport
+var accountModel = require('../../models/accounts');
+
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+
+//var express = require('express');
+//var app= express()
 
 
+
+//app.use(passport.initialize());
+//app.use(passport.session());
 
 
 module.exports = function(app) {
@@ -40,12 +53,44 @@ module.exports = function(app) {
 			});
 		}
 	});
-	
-	app.post('/', function(req, res){
+	//passport.authenticate('local', { failureRedirect: '/login' })
+	app.post('/',passport.authenticate,function(req, res){
 		console.log('/ Post request Manual Login')
 		console.log("the request object contains")
 		console.log(req.body)
-		AM.manualLogin(req.body['user'], req.body['pass'], function(e, o){
+		console.log("outside passport")
+		console.log("the params are")
+
+		var user= req.body.user
+		var pass = req.body.pass
+		console.log(user)
+		console.log(pass)
+
+
+
+
+		passport.use('/login',new LocalStrategy({usernameField: 'user',
+			passwordField: 'pass'},function(user, pass, cb) {
+			console.log("inside passport")
+			console.log("account manager.js")
+			console.log(user)
+			console.log(pass)
+			accountModel.accounts.findOne({user:user},function(err,user){
+
+
+				//accountModel.accounts.findOne(username, function(err, user) {
+				console.log("the value of user variable is")
+				console.log(user)
+				if (err) { return cb(err); }
+				if (!user)  callback('user-not-found'); //{ return cb(null, false); }
+				if (user.password != password) callback('invalid-password');//{ return cb(null, false); }
+				return cb(null, user);
+			});
+		}));
+
+
+
+		/*AM.manualLogin(req.body['user'], req.body['pass'],app,function(e, o){
            console.log("the value of o is")
 			console.log(o)
 			if (!o){
@@ -60,7 +105,7 @@ module.exports = function(app) {
 				}
 				res.status(200).send(o);
 			}
-		});
+		});*/
 	});
 	
 // logged-in user homepage //

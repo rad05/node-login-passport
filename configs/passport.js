@@ -2,7 +2,7 @@
 
 var passport = require('passport');  
 var mongoose = require('mongoose');  
-//var User = mongoose.model('User');
+var Account = mongoose.model('accounts');
 
 module.exports.init = function(app) {  
   passport.serializeUser(function(user, done) {
@@ -14,5 +14,5 @@ module.exports.init = function(app) {
   });
 
   // load strategies
-  require('./strategies/local')();
+
 };
